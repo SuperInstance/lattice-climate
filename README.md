@@ -1,43 +1,72 @@
 # lattice-climate
 
-Lattice Hamiltonian models for climate simulation. Implements Ising and Potts models on geographical grids with temperature-driven phase transitions, connecting statistical mechanics to real climate data.
+**Lattice Hamiltonian models for climate simulation — Ising and Potts models on geographical grids with Monte Carlo sampling and phase transition detection.**
 
-## Features
+Maps real climate data to statistical mechanics lattice models. Temperature → Ising spins, precipitation → Potts states. Run Metropolis-Hastings, Wolff cluster, and Swendsen-Wang Monte Carlo. Detect phase transitions via specific heat peaks and Binder cumulant crossing.
 
-- **2D/3D lattices** with configurable boundary conditions (periodic, fixed, open)
-- **Ising model** for binary climate states (e.g., above/below freezing)
-- **Potts model** for multi-state climate zones
-- **Monte Carlo samplers**: Metropolis-Hastings, Wolff cluster, Swendsen-Wang
-- **Climate mapping**: temperature → spins, precipitation → Potts states, spatial autocorrelation
-- **Phase detection**: critical temperature via specific heat peaks, Binder cumulant, finite-size scaling
-- **Transfer matrix**: exact solutions for 1D Ising and Onsager's exact 2D solution
+## What This Gives You
+
+- **Ising model** — binary climate states (warm/cold) with ferromagnetic coupling
+- **Potts model** — multi-state climate zones (dry/wet/frozen/etc.)
+- **Monte Carlo samplers** — Metropolis, Wolff cluster, Swendsen-Wang
+- **Climate mapping** — temperature → spins, precipitation → Potts states
+- **Phase detection** — critical temperature via specific heat peaks
+- **Transfer matrix** — exact solutions for 1D Ising chains
+- **Configurable lattices** — periodic, fixed, or open boundary conditions
 
 ## Quick Start
 
 ```python
-import numpy as np
-from lattice_climate import Lattice, IsingModel, MonteCarlo
+from lattice_climate import Lattice, IsingModel, MonteCarlo, ClimateMapper
 
-# Create a 32×32 lattice
-lattice = Lattice(32, 32, boundary="periodic")
+# Create a 20×20 lattice with periodic boundaries
+lattice = Lattice(20, 20, boundary="periodic")
 
-# Initialize random spins
-spins = np.random.choice([-1, 1], size=lattice.shape)
+# Ising model at critical temperature
+model = IsingModel(lattice, J=1.0, T=2.269, h=0.0)
 
-# Run Ising model at various temperatures
-model = IsingModel(lattice, J=1.0, T=2.269)
-final, energies, mags = MonteCarlo.metropolis(model, spins, T=1.5, n_steps=5000)
+# Run Monte Carlo
+spins = np.ones(lattice.shape, dtype=int)
+final, energies, mags = MonteCarlo.metropolis(model, spins, T=2.269, n_steps=1000)
+
+# Map real temperature data to spins
+mapper = ClimateMapper()
+spins = mapper.temperature_to_spins(temps, threshold=15.0)
 ```
 
 ## Installation
 
 ```bash
-pip install -e ".[dev]"
-pytest
+pip install -e .
 ```
+
+Requires: `numpy>=1.21`
+
+## API Reference
+
+| Module | Key Classes |
+|--------|------------|
+| `lattice` | `Lattice` — 2D grid with boundary conditions |
+| `ising` | `IsingModel` — H = -JΣsᵢsⱼ - hΣsᵢ |
+| `potts` | `PottsModel` — q-state Potts, H = -JΣδ(sᵢ,sⱼ) |
+| `monte_carlo` | `MonteCarlo` — Metropolis, Wolff, Swendsen-Wang |
+| `climate` | `ClimateMapper` — data → lattice mapping |
+| `phase` | `PhaseDetector` — Tc via specific heat |
+| `transfer` | `TransferMatrix` — exact 1D solutions |
+
+## Testing
+
+```bash
+pytest tests/
+```
+
+## How It Fits
+
+Part of the SuperInstance ecosystem:
+
+- **[regime-detection](https://github.com/SuperInstance/regime-detection)** — Detect climate regime changes via conservation drops
+- **lattice-climate** — Statistical mechanics models for climate (this repo)
 
 ## License
 
 MIT
-
-Part of the [SuperInstance OpenConstruct](https://github.com/SuperInstance/OpenConstruct) ecosystem.
